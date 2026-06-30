@@ -1,17 +1,13 @@
-// a = MSB
-// b = LSB
-
 module twoToFourDecoder(
   
-  output d0, d1, d2, d3,
-  input a,
-  input b
+  output [3:0] d,
+  input [1:0] a
   
 );
   
-  assign d0 = ~a & ~b;
-  assign d1 = ~a & b;
-  assign d2 = a & ~b;
-  assign d3 = a & b;
+  assign d[0] = ~a[1] & ~a[0];
+  assign d[1] = ~a[1] & a[0];
+  assign d[2] = a[1] & ~a[0];
+  assign d[3] = a[1] & a[0];
   
 endmodule //twoToFourDecoder

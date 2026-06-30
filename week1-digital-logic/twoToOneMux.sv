@@ -7,7 +7,7 @@ module twoToOneMux(
   output o,
   input a,
   input b,
-  input select,
+  input select
 );
   
   assign o = select ? b : a;

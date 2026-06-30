@@ -2,16 +2,18 @@ module fourBitAdder(
   output [3:0] sum,
   output cout,
   input [3:0] a,
-  input [3:0] b
+  input [3:0] b,
+  input cin
 );
   
   wire c1, c2, c3;
   
-  halfAdder bit0(
+  fullAdder bit0(
     .sum(sum[0]),
     .cout(c1),
     .a(a[0]),
-    .b(b[0])
+    .b(b[0]),
+    .cin(cin)
   );
   
   fullAdder bit1(

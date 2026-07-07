@@ -8,9 +8,8 @@ This project was built as a personal exploration of computer architecture after 
 
 # CPU Architecture
 
-<p align="center">
-  <img src="images/cpu_diagram.png" width="700">
-</p>
+<img width="646" height="657" alt="image" src="https://github.com/user-attachments/assets/1c1bb489-f14a-46f8-bbef-6c3831e0ad5f" />
+
 
 *Overall datapath of the 4-bit CPU.*
 

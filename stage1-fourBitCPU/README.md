@@ -6,6 +6,16 @@ This project was built as a personal exploration of computer architecture after 
 
 ---
 
+# CPU Architecture
+
+<p align="center">
+  <img src="images/cpu_diagram.png" width="700">
+</p>
+
+*Overall datapath of the 4-bit CPU.*
+
+---
+
 ## Features
 
 - 4-bit ALU
@@ -17,11 +27,10 @@ This project was built as a personal exploration of computer architecture after 
 - 4-bit Program Counter
 - Instruction Decoder
 - Hardwired Control Logic
-- Fetch → Decode → Execute architecture
-- HALT instruction
+- Fetch → Decode → Execute datapath
 - Python assembler
 - Human-readable assembly language
-- Automatic generation of Verilog instruction memory
+- Automatic Verilog instruction memory generation
 - Automatic register initialization
 
 ---
@@ -48,6 +57,24 @@ Each instruction is 8 bits wide.
 
 ---
 
+## HALT Instruction
+
+The HALT instruction is encoded as
+
+```verilog
+8'b11111111
+```
+
+This value was chosen because it is otherwise a useless instruction. It corresponds to
+
+```text
+OR R3, R3, R3
+```
+
+which simply computes `R3 OR R3` and writes the result back to `R3`, leaving the register unchanged. Instead of performing this redundant operation, the CPU interprets `8'b11111111` as a HALT instruction and stops execution.
+
+---
+
 ## Assembly Language
 
 Programs are written in a custom assembly language.
@@ -67,11 +94,10 @@ OR R2, R1, R3
 HALT
 ```
 
-The Python assembler automatically converts this into:
+The Python assembler automatically converts this program into:
 
-- machine code
-- Verilog instruction memory
-- register preload code
+- Verilog instruction memory (`program.svh`)
+- Register preload code (`preloadRegisters.svh`)
 
 No manual binary encoding is required.
 
@@ -79,7 +105,7 @@ No manual binary encoding is required.
 
 ## Project Structure
 
-```
+```text
 design.sv
 testbench.sv
 assembler.py
@@ -93,25 +119,27 @@ preloadRegisters.svh
 
 ## Running
 
-Generate instruction memory and register preload:
+Generate the instruction memory and register preload files:
 
 ```bash
 python assembler.py
 ```
 
-Compile:
+Compile the CPU:
 
 ```bash
 iverilog -g2012 -o cpu design.sv testbench.sv
 ```
 
-Run:
+Run the simulation:
 
 ```bash
 vvp cpu
 ```
 
 (Optional)
+
+View the waveform:
 
 ```bash
 gtkwave dump.vcd
@@ -121,14 +149,13 @@ gtkwave dump.vcd
 
 ## Future Improvements
 
-- 16-bit datapath
+- 16-bit RISC-inspired CPU
 - Expanded instruction set
 - Immediate instructions
 - Data memory
 - Branch instructions
 - Labels in the assembler
-- RISC-inspired ISA
-- 16-bit educational CPU
+- More capable Python assembler
 
 ---
 
@@ -136,6 +163,6 @@ gtkwave dump.vcd
 
 This project was created to understand how processors work beyond individual digital logic components.
 
-Instead of using an existing ISA, I designed a complete instruction format, built the processor in SystemVerilog, and wrote a Python assembler that translates custom assembly into machine code and Verilog include files.
+Instead of implementing an existing ISA, I designed my own instruction format, built the processor entirely in SystemVerilog, and wrote a Python assembler that translates human-readable assembly into machine code and automatically generates the Verilog include files used during simulation.
 
-The long-term goal is to evolve this project into a 16-bit RISC-inspired processor with a richer instruction set, memory support, and a more capable assembler.
+The long-term goal is to evolve this project into a **16-bit RISC-inspired processor** featuring memory, branching, a richer instruction set, and a more sophisticated assembler.

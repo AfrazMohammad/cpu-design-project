@@ -91,9 +91,9 @@ always @ (*) begin
 
         CMP : begin
             sr1 = instruction[11:9];
-            subcode = {2'b0, instruction[5]};
+            subcode = {2'b0, instruction[8]};
             sr2 = instruction[2:0];
-            raw_imm = {5'b0, instruction[4:0]};
+            raw_imm = {2'b0, instruction[7:0]};
         end
 
         BR : begin

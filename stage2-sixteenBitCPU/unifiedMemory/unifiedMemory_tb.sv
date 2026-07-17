@@ -3,194 +3,225 @@
 module testbench;
 
     reg clk;
-    reg write_enable;
-
+    reg reset;
+    reg [15:0] store_data;
     reg [15:0] address;
-    reg [15:0] write_data;
+    reg mdr_enable;
+    reg mdr_select;
+    reg memory_write_enable;
 
-    wire [15:0] read_data;
+    wire [15:0] mdr_data;
 
     integer errors;
 
     unifiedMemory #(
-        .MEMORY_DEPTH(16),
+        .MEMORY_DEPTH(256),
         .MEMORY_FILE("")
     ) dut (
-        .read_data(read_data),
-        .write_data(write_data),
+        .mdr_data(mdr_data),
+        .store_data(store_data),
         .address(address),
+        .mdr_enable(mdr_enable),
+        .mdr_select(mdr_select),
+        .mdr_reset(reset),
         .clk(clk),
-        .write_enable(write_enable)
+        .memory_write_enable(memory_write_enable)
     );
 
-    initial begin
-        clk = 0;
-        forever #5 clk = ~clk;
+    always #5 clk = ~clk;
+
+    task clock_cycle;
+    begin
+        @(posedge clk);
+        #1;
     end
-
-    task write_memory;
-        input [15:0] input_address;
-        input [15:0] input_data;
-
-        begin
-            address = input_address;
-            write_data = input_data;
-            write_enable = 1;
-
-            @(posedge clk);
-            #1;
-
-            write_enable = 0;
-        end
     endtask
 
-    task read_and_check;
-        input [15:0] input_address;
+    task check_mdr;
         input [15:0] expected;
-        input [127:0] test_name;
-
-        begin
-            address = input_address;
-            write_enable = 0;
-
-            @(posedge clk);
-            #1;
-
-            if (read_data !== expected) begin
-                $display(
-                    "FAIL: %s | address=%0d expected=%h got=%h",
-                    test_name,
-                    input_address,
-                    expected,
-                    read_data
-                );
-                errors = errors + 1;
-            end
-            else begin
-                $display(
-                    "PASS: %s | address=%0d data=%h",
-                    test_name,
-                    input_address,
-                    read_data
-                );
-            end
+        input [127:0] name;
+    begin
+        if (mdr_data !== expected) begin
+            $display("FAIL: %s Expected=%h Got=%h",
+                     name, expected, mdr_data);
+            errors = errors + 1;
         end
+        else
+            $display("PASS: %s", name);
+    end
+    endtask
+
+    task check_memory;
+        input [15:0] addr;
+        input [15:0] expected;
+        input [127:0] name;
+    begin
+        if (dut.memory[addr] !== expected) begin
+            $display("FAIL: %s Expected=%h Got=%h",
+                     name, expected, dut.memory[addr]);
+            errors = errors + 1;
+        end
+        else
+            $display("PASS: %s", name);
+    end
     endtask
 
     initial begin
+
+        clk = 0;
+        reset = 0;
+        store_data = 0;
+        address = 0;
+        mdr_enable = 0;
+        mdr_select = 0;
+        memory_write_enable = 0;
         errors = 0;
 
-        address = 16'h0000;
-        write_data = 16'h0000;
-        write_enable = 0;
+        dut.memory[16'h0010] = 16'h1234;
+        dut.memory[16'h0020] = 16'hABCD;
+        dut.memory[16'h0030] = 16'h5678;
 
-        // ---------------------------------
-        // Test 1: Write values
-        // ---------------------------------
+        //---------------------------------
+        // Reset
+        //---------------------------------
 
-        write_memory(16'd0, 16'h1234);
-        write_memory(16'd1, 16'hABCD);
-        write_memory(16'd2, 16'hFFFF);
-        write_memory(16'd15, 16'h0055);
+        reset = 1;
+        clock_cycle();
 
-        // ---------------------------------
-        // Test 2: Read values
-        // ---------------------------------
+        check_mdr(16'h0000, "Reset clears MDR");
+        check_memory(16'h0010, 16'h1234,
+                     "Reset preserves memory");
 
-        read_and_check(
-            16'd0,
-            16'h1234,
-            "Read address 0"
-        );
+        reset = 0;
 
-        read_and_check(
-            16'd1,
-            16'hABCD,
-            "Read address 1"
-        );
+        //---------------------------------
+        // Load MDR from memory
+        //---------------------------------
 
-        read_and_check(
-            16'd2,
-            16'hFFFF,
-            "Read address 2"
-        );
+        address = 16'h0010;
+        mdr_select = 0;
+        mdr_enable = 1;
 
-        read_and_check(
-            16'd15,
-            16'h0055,
-            "Read address 15"
-        );
+        clock_cycle();
 
-        // ---------------------------------
-        // Test 3: Overwrite a location
-        // ---------------------------------
+        check_mdr(16'h1234,
+                  "Load MDR from memory");
 
-        write_memory(16'd1, 16'h7777);
+        mdr_enable = 0;
 
-        read_and_check(
-            16'd1,
-            16'h7777,
-            "Overwrite address 1"
-        );
+        //---------------------------------
+        // Load MDR from store_data
+        //---------------------------------
 
-        // ---------------------------------
-        // Test 4: read_data holds during write
-        // ---------------------------------
+        store_data = 16'hBEEF;
+        mdr_select = 1;
+        mdr_enable = 1;
 
-        address = 16'd0;
-        write_enable = 0;
+        clock_cycle();
 
-        @(posedge clk);
-        #1;
+        check_mdr(16'hBEEF,
+                  "Load MDR from store_data");
 
-        if (read_data !== 16'h1234) begin
-            $display(
-                "FAIL: Initial hold setup expected 1234, got %h",
-                read_data
-            );
-            errors = errors + 1;
-        end
+        mdr_enable = 0;
 
-        address = 16'd3;
-        write_data = 16'hBEEF;
-        write_enable = 1;
+        //---------------------------------
+        // Write MDR into memory
+        //---------------------------------
 
-        @(posedge clk);
-        #1;
+        address = 16'h0040;
+        memory_write_enable = 1;
 
-        if (read_data !== 16'h1234) begin
-            $display(
-                "FAIL: read_data changed during write, got %h",
-                read_data
-            );
-            errors = errors + 1;
-        end
-        else begin
-            $display(
-                "PASS: read_data held previous value during write"
-            );
-        end
+        clock_cycle();
 
-        write_enable = 0;
+        check_memory(16'h0040,
+                     16'hBEEF,
+                     "Write MDR into memory");
 
-        read_and_check(
-            16'd3,
-            16'hBEEF,
-            "Read newly written address 3"
-        );
+        check_mdr(16'hBEEF,
+                  "MDR unchanged after write");
 
-        // ---------------------------------
-        // Final result
-        // ---------------------------------
+        memory_write_enable = 0;
 
-        $display("");
+        //---------------------------------
+        // Read it back
+        //---------------------------------
+
+        address = 16'h0040;
+        mdr_select = 0;
+        mdr_enable = 1;
+
+        clock_cycle();
+
+        check_mdr(16'hBEEF,
+                  "Read back stored value");
+
+        mdr_enable = 0;
+
+        //---------------------------------
+        // Write has priority
+        //---------------------------------
+
+        store_data = 16'hCAFE;
+        mdr_select = 1;
+        mdr_enable = 1;
+
+        clock_cycle();
+
+        check_mdr(16'hCAFE,
+                  "Prepare priority test");
+
+        address = 16'h0050;
+        store_data = 16'h1111;
+        memory_write_enable = 1;
+        mdr_enable = 1;
+        mdr_select = 1;
+
+        clock_cycle();
+
+        check_memory(16'h0050,
+                     16'hCAFE,
+                     "Write priority");
+
+        check_mdr(16'hCAFE,
+                  "MDR unchanged during write");
+
+        memory_write_enable = 0;
+        mdr_enable = 0;
+
+        //---------------------------------
+        // Hold state
+        //---------------------------------
+
+        clock_cycle();
+
+        check_mdr(16'hCAFE,
+                  "Hold MDR");
+
+        check_memory(16'h0030,
+                     16'h5678,
+                     "Hold memory");
+
+        //---------------------------------
+        // Final reset
+        //---------------------------------
+
+        reset = 1;
+        clock_cycle();
+
+        check_mdr(16'h0000,
+                  "Reset again");
+
+        check_memory(16'h0040,
+                     16'hBEEF,
+                     "Memory still intact");
 
         if (errors == 0)
-            $display("ALL UNIFIED MEMORY TESTS PASSED");
+            $display("\nALL TESTS PASSED");
         else
-            $display("%0d UNIFIED MEMORY TESTS FAILED", errors);
+            $display("\n%d TESTS FAILED", errors);
 
         $finish;
+
     end
 
 endmodule

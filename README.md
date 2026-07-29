@@ -84,9 +84,10 @@ ROR
 ### Memory
 
 ```
-LDR
-STR
-LI
+LD      ST
+LDI     STI
+LDR     STR
+LI      LEA
 ```
 
 ### Control Flow

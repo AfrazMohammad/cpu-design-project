@@ -150,11 +150,34 @@ LOOP   ADD  R0, R0, #1
 ## Example Output
 
 ```
-PC: x3000    Instruction: xA005
-PC: x3001    Instruction: xA10A
-PC: x3002    Instruction: x00A1
-PC: x3003    Instruction: x9...
-...
+################################
+#        FINAL CPU STATE       #
+################################
+
+Instructions executed = 9
+Cycles executed       = 58
+Total memory writes   = 3
+
+PC    = 0009
+IR    = fc00
+MAR   = 0008
+MDR   = fc00
+Flags = 000
+
+Registers
+--------------------------------
+R0:000a  R1:000f  R2:000f  R3:000a
+R4:fc00  R5:0000  R6:0000  R7:0000
+
+Memory Updated
+--------------------------------
+MEM[000a] = 000f
+MEM[000f] = 000a
+MEM[0014] = fc00
+
+################################
+# TEST COMPLETED SUCCESSFULLY  #
+################################
 ```
 
 ---

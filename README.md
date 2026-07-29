@@ -272,10 +272,10 @@ ADD R0, /* comment */ R1, R2
 - [x] Digital logic components
 - [x] Registers
 - [x] ALU
-- [ ] Instruction decoder
-- [ ] Datapath
-- [ ] Control unit
-- [ ] Complete processor
+- [x] Instruction decoder
+- [x] Datapath
+- [x] Control unit
+- [x] Complete processor
 - [ ] FPGA implementation
 
 ### Assembler

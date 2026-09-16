@@ -216,11 +216,11 @@ Depending on the instruction, the 16-bit word contains fields representing:
 
 ### Arithmetic, Logical, Shift, and Direct Memory Instructions
 
-![ISA Encoding Page 1](images/isa-encoding-1.png)
+![ISA Encoding Page 1](<img width="304" height="371" alt="isa-encoding-1 png" src="https://github.com/user-attachments/assets/355e0a30-7681-44fa-b71a-d9b9c6848297" />)
 
 ### Memory, Control Flow, Comparison, and System Instructions
 
-![ISA Encoding Page 2](images/isa-encoding-2.png)
+![ISA Encoding Page 2](<img width="305" height="374" alt="isa-encoding-2 png" src="https://github.com/user-attachments/assets/2eee65aa-fa41-4415-b81e-e381fb750356" />)
 
 ---
 

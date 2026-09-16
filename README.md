@@ -2,8 +2,6 @@
 
 A custom 16-bit processor architecture implemented in Verilog with a Python-based two-pass assembler. This project explores computer architecture from the ground up by designing an instruction set, implementing hardware modules, and building the software toolchain required to translate assembly language into machine code.
 
-> **Status:** 🚧 Work in Progress
-
 ---
 
 ## Overview
@@ -288,10 +286,10 @@ ADD R0, /* comment */ R1, R2
 - [x] Machine code generation
 - [x] Symbol table generation
 - [x] Pass 1
-- [ ] Pass 2
-- [ ] Label resolution
-- [ ] Binary output file
-- [ ] Verilog memory image generation
+- [X] Pass 2
+- [X] Label resolution
+- [X] Binary output file
+- [X] Verilog memory image generation
 
 ---
 
